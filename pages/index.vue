@@ -1,11 +1,14 @@
 <template>
   <div>
-    <NuxtWelcome />
+    [{{ userStore.data }}, {{ status }}, {{ error }}]
   </div>
 </template>
 
 <script setup lang="ts">
-const baseUrl = 'https://25560.wu.elitepro.ltd' // 後端網址 將由面試官提供
+const userStore = useUserStore()
+
+// 使用useAsyncData避免Client重複請求
+const { status, error } = await useAsyncData('getUserInfo', async () => await userStore.refresh())
 </script>
 
 <style scoped lang="scss"></style>

@@ -4,6 +4,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
 
+  imports: {
+    dirs: ['store'],
+  },
+
   modules: ['@nuxtjs/i18n', '@pinia/nuxt', '@nuxt/image', '@unocss/nuxt', '@nuxtjs/google-fonts'],
 
   googleFonts: {
@@ -91,4 +95,10 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/style.scss'],
+  
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.API_BASE_URL,
+    },
+  },
 })
