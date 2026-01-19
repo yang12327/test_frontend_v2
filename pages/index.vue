@@ -22,11 +22,11 @@
           <EBtn
             v-if="form.id !== 0"
             color="success"
-            @click="action(ActionType.edit)"
+            @click.prevent="action(ActionType.edit)"
             type="submit"
             >{{ $t('edit') }}</EBtn
           >
-          <EBtn color="warn" @click="action(ActionType.add)" type="submit">{{ $t('add') }}</EBtn>
+          <EBtn color="warn" @click.prevent="action(ActionType.add)" type="submit">{{ $t('add') }}</EBtn>
         </div>
       </form>
     </div>
@@ -142,24 +142,40 @@ const action = async (type: ActionType) => {
 
   // 執行API
   switch (type) {
-    case ActionType.add:
-      await userApi.createUserInfo({ name: form.value.name, age: +form.value.age })
+    case ActionType.add: {
+      const res = await userApi.createUserInfo({ name: form.value.name, age: +form.value.age })
+      if (res.data?.code !== 200) return alert('failed')
+      const id = res.data?.data?.id
+      userStore.data.push({ id, name: form.value.name, age: +form.value.age })
       break
-    case ActionType.edit:
-      await userApi.updateUserInfo({
+    }
+    case ActionType.edit: {
+      const res = await userApi.updateUserInfo({
         id: form.value.id,
         name: form.value.name,
         age: +form.value.age,
       })
+      if (res.data?.code !== 200) return alert('failed')
+      const idx = userStore.data.findIndex((x) => x.id === form.value.id)
+      if (idx !== -1)
+        userStore.data.splice(idx, 1, {
+          id: form.value.id,
+          name: form.value.name,
+          age: +form.value.age,
+        })
       break
-    case ActionType.delete:
-      await userApi.deleteUserInfo({ id: form.value.id })
+    }
+    case ActionType.delete: {
+      const res = await userApi.deleteUserInfo({ id: form.value.id })
+      if (res.data?.code !== 200) return alert('failed')
+      const idx = userStore.data.findIndex((x) => x.id === form.value.id)
+      if (idx !== -1) userStore.data.splice(idx, 1)
       break
+    }
   }
 
-  // 重置表單與刷新列表
+  // 重置表單
   form.value = { id: 0, name: '', age: '' }
-  userStore.refresh()
 }
 const edit = (
   item: {
