@@ -1,5 +1,10 @@
 <template>
-  <button class="e-btn" :class="[`e-btn-${props.color}`, `e-btn-${props.size}`]">
+  <button
+    class="e-btn"
+    :class="[`e-btn-${props.color}`, `e-btn-${props.size}`]"
+    v-bind="attrs"
+    type="button"
+  >
     <template v-if="props.text">{{ props.text }}</template>
     <slot v-else />
   </button>
@@ -16,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   color: 'success',
   size: 'md',
 })
+const attrs = useAttrs()
 </script>
 
 <style scoped lang="scss">

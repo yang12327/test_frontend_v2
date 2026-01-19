@@ -11,17 +11,24 @@
         <h2>{{ $t('action') }}</h2>
       </div>
 
-      <form ref="formRef">
+      <form
+        ref="formRef"
+        @submit.prevent="action(form.id === 0 ? ActionType.add : ActionType.edit)"
+      >
         <ETextField v-model:value="form.name" :label="$t('name')" required />
         <ETextField v-model:value="form.age" :label="$t('age')" required type="number" />
-      </form>
 
-      <div class="pt-2 sm:pt-5 flex justify-end gap-x-4">
-        <EBtn v-if="form.id !== 0" color="success" @click="action(ActionType.edit)">{{
-          $t('edit')
-        }}</EBtn>
-        <EBtn color="warn" @click="action(ActionType.add)">{{ $t('add') }}</EBtn>
-      </div>
+        <div class="pt-2 sm:pt-5 flex justify-end gap-x-4">
+          <EBtn
+            v-if="form.id !== 0"
+            color="success"
+            @click="action(ActionType.edit)"
+            type="submit"
+            >{{ $t('edit') }}</EBtn
+          >
+          <EBtn color="warn" @click="action(ActionType.add)" type="submit">{{ $t('add') }}</EBtn>
+        </div>
+      </form>
     </div>
 
     <div class="card">
@@ -99,6 +106,7 @@
 
 <script setup lang="ts">
 const userStore = useUserStore()
+const userApi = useApi()
 
 // 使用useAsyncData避免Client重複請求
 await useAsyncData('getUserInfo', async () => await userStore.refresh())
@@ -117,35 +125,41 @@ enum ActionType {
   delete = 3,
 }
 
-const actionType = ref(ActionType.none)
+const actionType = ref(ActionType.none) // 目前操作模式
 const actionResolve = ref()
 const formRef = ref<HTMLFormElement>()
 const action = async (type: ActionType) => {
+  // 驗證欄位
   if (!formRef.value?.reportValidity()) return
+
+  // 開啟dialog
   actionType.value = type
   showDialog.value = true
+
+  // 等待回覆
   const result = await new Promise((resolve) => (actionResolve.value = resolve))
   if (!result) return
+
+  // 執行API
   switch (type) {
     case ActionType.add:
-      // add
+      await userApi.createUserInfo({ name: form.value.name, age: +form.value.age })
       break
     case ActionType.edit:
-      // edit
+      await userApi.updateUserInfo({
+        id: form.value.id,
+        name: form.value.name,
+        age: +form.value.age,
+      })
       break
     case ActionType.delete:
-      // delete
+      await userApi.deleteUserInfo({ id: form.value.id })
       break
   }
-  console.log(
-    `${ActionType[type]}: `,
-    JSON.stringify({
-      id: form.value.id,
-      name: form.value.name,
-      age: form.value.age,
-    })
-  )
+
+  // 重置表單與刷新列表
   form.value = { id: 0, name: '', age: '' }
+  userStore.refresh()
 }
 const edit = (
   item: {
@@ -160,6 +174,7 @@ const edit = (
   form.value.age = String(item.age ?? '')
   nextTick().then(() => {
     if (type === ActionType.delete) action(type)
+    else formRef.value?.querySelector('input')?.focus()
   })
 }
 

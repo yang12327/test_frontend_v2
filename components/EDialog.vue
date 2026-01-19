@@ -18,6 +18,7 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, onBeforeUnmount } from 'vue'
 interface Props {
   modelValue: boolean
   title?: string
@@ -39,6 +40,20 @@ const close = (exitCode?: any) => {
   emit('update:modelValue', false)
   emit('close', exitCode)
 }
+
+// 監聽快捷鍵
+const onKeydown = (e: KeyboardEvent) => {
+  if (!props.modelValue) return
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    e.preventDefault()
+    close()
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    close(true)
+  }
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <style scoped lang="scss">
