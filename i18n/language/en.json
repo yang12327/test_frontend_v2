@@ -1,4 +1,14 @@
 {
   "welcome": "Welcome",
-  "test": "Test"
+  "test": "Test",
+  "action": "Action",
+  "name": "Name",
+  "age": "Age",
+  "edit": "Edit",
+  "add": "Add",
+  "delete": "Delete",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "confirm_msg": "Are you sure you want to {0} this item?",
+  "no_data": "No data available"
 }
