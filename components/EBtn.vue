@@ -8,7 +8,7 @@
 <script setup lang="ts">
 interface Props {
   text?: string // 若有輸入時以此為主，若沒有就顯示 slot
-  color?: 'success' | 'error' | 'warn' // 預設為 success
+  color?: 'success' | 'error' | 'warn' | 'white' // 預設為 success
   size?: 'sm' | 'md'
 }
 

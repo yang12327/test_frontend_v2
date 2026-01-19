@@ -1,37 +1,26 @@
 <template>
   <div class="container">
-    <!-- UI Components Demo Section -->
-    <div class="card mb-5">
-      <h2 class="mb-4">UI Components Demo</h2>
-      <div class="flex flex-col gap-4">
-        <div class="flex gap-4 items-center">
-          <label class="text-white w-24">Dialog:</label>
-          <EBtn @click="showDialog = true">Open Dialog</EBtn>
-        </div>
-
-        <div class="flex gap-4 items-center">
-          <label class="text-white w-24">Dropdown:</label>
-          <div class="w-64">
-            <EDropdown
-              v-model="selectedFruit"
-              :options="fruitOptions"
-              placeholder="Select a fruit"
-            />
-          </div>
-          <span class="text-white ml-2">Selected: {{ selectedFruit }}</span>
-        </div>
-      </div>
-    </div>
-
     <div class="card">
-      <h2>{{ $t('action') }}</h2>
+      <div>
+        <EDropdown
+          class="float-right w-32"
+          :options="languageOptions"
+          :model-value="locale"
+          @update:model-value="(v: any) => setLocale(v)"
+        />
+        <h2>{{ $t('action') }}</h2>
+      </div>
 
-      <ETextField v-model:value="form.name" :label="$t('name')" />
-      <ETextField v-model:value="form.age" :label="$t('age')" />
+      <form ref="formRef">
+        <ETextField v-model:value="form.name" :label="$t('name')" required />
+        <ETextField v-model:value="form.age" :label="$t('age')" required type="number" />
+      </form>
 
       <div class="pt-2 sm:pt-5 flex justify-end gap-x-4">
-        <EBtn color="success">{{ $t('edit') }}</EBtn>
-        <EBtn color="warn">{{ $t('add') }}</EBtn>
+        <EBtn v-if="form.id !== 0" color="success" @click="action(ActionType.edit)">{{
+          $t('edit')
+        }}</EBtn>
+        <EBtn color="warn" @click="action(ActionType.add)">{{ $t('add') }}</EBtn>
       </div>
     </div>
 
@@ -51,10 +40,24 @@
             <td>{{ data.id }}</td>
             <td>{{ data.name }}</td>
             <td>{{ data.age }}</td>
-            <td>
-              <div class="flex gap-x-1 justify-center">
-                <EBtn color="success" size="sm" class="px-2">{{ $t('edit') }}</EBtn>
-                <EBtn color="error" size="sm">{{ $t('delete') }}</EBtn>
+            <td class="table-action">
+              <div class="sm:flex gap-x-1 justify-center hidden">
+                <EBtn color="success" size="sm" @click="edit(data)">
+                  {{ $t('edit') }}
+                </EBtn>
+                <EBtn color="error" size="sm" @click="edit(data, ActionType.delete)">
+                  {{ $t('delete') }}
+                </EBtn>
+              </div>
+              <div class="sm:hidden">
+                <EDropdown
+                  placeholder=""
+                  :options="[
+                    { label: $t('edit'), value: ActionType.edit },
+                    { label: $t('delete'), value: ActionType.delete },
+                  ]"
+                  @update:model-value="(v: any) => edit(data, v)"
+                />
               </div>
             </td>
           </tr>
@@ -63,16 +66,32 @@
       <div v-else class="text-center py-10">{{ $t('no_data') }}</div>
     </div>
 
-    <EDialog v-model="showDialog" title="Hello Dialog">
+    <EDialog
+      v-model="showDialog"
+      :title="$t('confirm_msg', { type: $t(ActionType[actionType]) })"
+      @close="actionResolve && actionResolve($event)"
+    >
       <div class="py-2">
-        <p class="mb-4">This is a reusable dialog component.</p>
-        <p>
-          You selected: <strong>{{ selectedFruit || 'Nothing' }}</strong>
-        </p>
+        <table class="text-center w-full">
+          <tbody>
+            <tr v-if="form.id !== 0 && actionType !== ActionType.add">
+              <th>ID</th>
+              <td class="font-bold"># {{ form.id }}</td>
+            </tr>
+            <tr>
+              <th>{{ $t('name') }}</th>
+              <td>{{ form.name }}</td>
+            </tr>
+            <tr>
+              <th>{{ $t('age') }}</th>
+              <td>{{ form.age }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <template #footer>
-        <EBtn color="warn" size="sm" @click="showDialog = false">Close</EBtn>
-        <EBtn size="sm" @click="showDialog = false">Save</EBtn>
+      <template #footer="{ close }">
+        <EBtn color="white" @click="close(false)">{{ $t('cancel') }}</EBtn>
+        <EBtn @click="close(true)">{{ $t('confirm') }}</EBtn>
       </template>
     </EDialog>
   </div>
@@ -85,19 +104,80 @@ const userStore = useUserStore()
 await useAsyncData('getUserInfo', async () => await userStore.refresh())
 
 const form = ref({
+  id: 0,
   name: '',
   age: '',
 })
-
-// UI Components Demo State
 const showDialog = ref(false)
-const selectedFruit = ref('')
-const fruitOptions = [
-  { label: 'Apple', value: 'apple' },
-  { label: 'Banana', value: 'banana' },
-  { label: 'Orange', value: 'orange' },
-  { label: 'Mango', value: 'mango' },
-]
+
+enum ActionType {
+  none = 0,
+  add = 1,
+  edit = 2,
+  delete = 3,
+}
+
+const actionType = ref(ActionType.none)
+const actionResolve = ref()
+const formRef = ref<HTMLFormElement>()
+const action = async (type: ActionType) => {
+  if (!formRef.value?.reportValidity()) return
+  actionType.value = type
+  showDialog.value = true
+  const result = await new Promise((resolve) => (actionResolve.value = resolve))
+  if (!result) return
+  switch (type) {
+    case ActionType.add:
+      // add
+      break
+    case ActionType.edit:
+      // edit
+      break
+    case ActionType.delete:
+      // delete
+      break
+  }
+  console.log(
+    `${ActionType[type]}: `,
+    JSON.stringify({
+      id: form.value.id,
+      name: form.value.name,
+      age: form.value.age,
+    })
+  )
+  form.value = { id: 0, name: '', age: '' }
+}
+const edit = (
+  item: {
+    age?: number | undefined
+    id?: number | undefined
+    name?: string | undefined
+  },
+  type: ActionType = ActionType.none
+) => {
+  form.value.id = item.id ?? 0
+  form.value.name = item.name ?? ''
+  form.value.age = String(item.age ?? '')
+  nextTick().then(() => {
+    if (type === ActionType.delete) action(type)
+  })
+}
+
+// 多語言設置
+const { locale, locales, setLocale } = useI18n()
+const languageOptions = computed(() =>
+  locales.value.map((x: any) => ({ label: x.name, value: x.code }))
+)
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.table-action {
+  width: 3rem;
+}
+
+@media (min-width: 640px) {
+  .table-action {
+    width: 7rem;
+  }
+}
+</style>

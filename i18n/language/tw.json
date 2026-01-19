@@ -9,6 +9,6 @@
   "delete": "刪除",
   "confirm": "確定",
   "cancel": "取消",
-  "confirm_msg": "你確定要{0}這筆資料嗎？",
+  "confirm_msg": "你確定要{type}這筆資料嗎？",
   "no_data": "沒有任何資料"
 }

@@ -34,9 +34,16 @@ table {
   line-height: 3;
 }
 
+tbody > tr {
+  transition: background-color 0.15s;
+  &:hover {
+    background-color: #444;
+  }
+}
+
 td {
   border-bottom: 1px solid #777;
-  padding: .5rem;
+  padding: 0.5rem;
 }
 
 @media (min-width: 640px) {
